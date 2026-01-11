@@ -1,46 +1,53 @@
-# Wellness Studio – Suivi Sport et Bien-être
+# Wellness Studio
 
 ## Objectif du projet
+Wellness Studio est une application web développée en Python avec Streamlit.
+Elle permet de suivre des habitudes liées au sport et au bien-être, en enregistrant
+des sessions d’activité, de sommeil et de ressenti personnel.
 
-Ce projet est une application web développée avec Streamlit permettant de suivre l’activité physique et le bien-être au quotidien.  
-L’utilisateur peut enregistrer ses séances sportives, son humeur et son sommeil, puis visualiser des indicateurs et graphiques synthétiques dans un tableau de bord clair et interactif.
-
-L’objectif est de proposer un outil simple, visuel et orienté bien-être, facilitant l’auto-suivi et la prise de recul sur ses habitudes.
+L’objectif est de proposer un tableau de bord simple et visuel pour analyser
+l’évolution de ses habitudes sur différentes périodes.
 
 ---
 
 ## Fonctionnalités principales
-
-- Saisie de séances sport et bien-être :
-  - date
-  - type d’activité
-  - durée
-  - intensité
-  - humeur
-  - sommeil
-- Enregistrement des données dans un fichier CSV
-- Tableau de bord interactif :
-  - indicateurs clés (KPI)
-  - graphiques d’évolution
-  - filtres par période, activité et humeur
-- Mode clair / mode nuit
-- Interface personnalisée avec fond visuel
-- Export des données filtrées au format CSV
+- Saisie de sessions (activité, durée, intensité, bien-être, sommeil)
+- Enregistrement automatique des données dans un fichier CSV
+- Filtrage par période, activité et seuil de bien-être
+- Calcul d’indicateurs clés (temps d’activité, moyennes, score global)
+- Comparaison automatique avec la période précédente
+- Visualisation des données sous forme de graphiques et tableaux
+- Export des données au format CSV
+- Suppression d'une ou plusieurs sessions enregistrées
 
 ---
 
 ## Technologies utilisées
-
 - Python 3
 - Streamlit
 - Pandas
-- HTML / CSS
 
 ---
 
-## Lancer l’application en local
+## ▶️ Lancement de l’application (en local)
 
-### 1. Cloner le projet
-```bash
-git clone <URL_DU_DEPOT_GITHUB>
+1. Se placer dans le dossier du projet :
+
 cd SportApp
+
+Installer les dépendances :
+pip install -r requirements.txt
+
+Lancer l’application :
+streamlit run app.py
+
+L’application s’ouvre automatiquement dans le navigateur.
+
+📁 Structure du projet
+.
+├── app.py              # Application Streamlit principale
+├── data/
+│   └── bienetre.csv    # Données des sessions
+├── assets/             # Images de fond
+├── requirements.txt    # Dépendances Python
+└── README.md
