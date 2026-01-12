@@ -21,7 +21,6 @@ COLS = ["date", "activite", "duree_min", "intensite", "humeur", "sommeil_h", "co
 # HTML RENDER FIX (anti codeblock)
 # =========================
 def md_html(html: str):
-    # IMPORTANT : enlève l'indentation => sinon Streamlit/Markdown affiche un bloc "code"
     html = "\n".join(line.lstrip() for line in html.splitlines())
     st.markdown(html, unsafe_allow_html=True)
 
@@ -693,16 +692,16 @@ with cL:
 with cR:
     md_html(f"""
     <div class='mask'>
-      <div class="sTitle">{ico("flag")} Synthèse comité</div>
+      <div class="sTitle">{ico("flag")} Synthèse</div>
       <div style="margin-top:6px;font-size:26px;font-weight:950;color:var(--ink);line-height:1.15">{syn1}</div>
       <div style="margin-top:10px;color:var(--muted);font-weight:850;line-height:1.55;font-size:14px">{syn2}</div>
     </div>
     """)
 
-    show_note = st.button("📌 Ouvrir la note comité (copier / exporter)", use_container_width=True)
+    show_note = st.button("📌 Ouvrir la note de synthèse (copier / exporter)", use_container_width=True)
 
     note_txt = (
-        f"SYNTHÈSE COMITÉ — {APP_NAME}\n"
+        f"SYNTHÈSE — {APP_NAME}\n"
         f"Période analysée : {start_cur.strftime('%d/%m/%Y')} → {end_cur.strftime('%d/%m/%Y')}\n"
         f"Période de comparaison : {start_prev.strftime('%d/%m/%Y')} → {end_prev.strftime('%d/%m/%Y')}\n\n"
         f"{syn1}\n{syn2}\n\n"
@@ -710,7 +709,7 @@ with cR:
         f"\n\nPOINTS D’ATTENTION\n- " + "\n- ".join(att)
     )
     if show_note:
-        st.text_area("Note comité", value=note_txt, height=260)
+        st.text_area("Note synthèse", value=note_txt, height=260)
 
 
 # =========================
