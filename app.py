@@ -4,30 +4,36 @@ from pathlib import Path
 from datetime import date, timedelta
 from base64 import b64encode
 
-# =========================
-# CONFIG
-# =========================
+# ============================================================
+# 01) CONFIGURATION DE L'APP
+# ============================================================
 APP_NAME = "Wellness Studio"
 st.set_page_config(page_title=APP_NAME, page_icon="🧘", layout="wide")
 
+# ============================================================
+# 02) DOSSIERS / FICHIERS
+# ============================================================
 DATA_DIR = Path("data"); DATA_DIR.mkdir(exist_ok=True)
 ASSETS = Path("assets"); ASSETS.mkdir(exist_ok=True)
 CSV_FILE = DATA_DIR / "bienetre.csv"
 
+# ============================================================
+# 03) COLONNES ATTENDUES DANS LE CSV
+# ============================================================
 COLS = ["date", "activite", "duree_min", "intensite", "humeur", "sommeil_h", "commentaire"]
 
 
-# =========================
-# HTML RENDER FIX (anti codeblock)
-# =========================
+# ============================================================
+# 04) RENDU HTML (évite affichage en bloc de code)
+# ============================================================
 def md_html(html: str):
     html = "\n".join(line.lstrip() for line in html.splitlines())
     st.markdown(html, unsafe_allow_html=True)
 
 
-# =========================
-# HELPERS (assets + data)
-# =========================
+# ============================================================
+# 05) ASSETS (récupérer un fichier s'il existe)
+# ============================================================
 def pick_asset(*names):
     for n in names:
         p = ASSETS / n
@@ -38,6 +44,10 @@ def pick_asset(*names):
             return p2
     return None
 
+
+# ============================================================
+# 06) CSS BACKGROUND (image + voile)
+# ============================================================
 def css_bg(bg_path: Path, veil: float, dark: bool):
     mime = "png" if bg_path.suffix.lower() == ".png" else "jpeg"
     b64 = b64encode(bg_path.read_bytes()).decode()
@@ -55,29 +65,29 @@ def css_bg(bg_path: Path, veil: float, dark: bool):
     }}
     """
 
+
+# ============================================================
+# 07) CHARGEMENT DU CSV + NETTOYAGE (robuste)
+# ============================================================
 def load_df():
     """
     Charge le fichier CSV des sessions.
     - Si le CSV n'existe pas, on le crée vide avec les bonnes colonnes.
     - On force les types (date, int, float, str) pour éviter les bugs.
     """
-    # 1) Si le CSV n'existe pas : création d'un fichier vide (robuste)
     if not CSV_FILE.exists():
         df = pd.DataFrame(columns=COLS)
         df.to_csv(CSV_FILE, index=False)
         return df
 
-    # 2) Lecture du CSV
     df = pd.read_csv(CSV_FILE)
 
-    # 3) Sécurisation des colonnes
     for c in COLS:
         if c not in df.columns:
             df[c] = "" if c == "commentaire" else 0
 
     df = df[COLS].copy()
 
-    # 4) Nettoyage + conversions
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
         df = df.dropna(subset=["date"])
@@ -91,19 +101,30 @@ def load_df():
 
     return df
 
+
+# ============================================================
+# 08) AJOUT D'UNE SESSION (append)
+# ============================================================
 def save_append(row: dict):
     df = load_df()
     df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     df.to_csv(CSV_FILE, index=False)
 
+
+# ============================================================
+# 09) SAUVEGARDE D'UN DF COMPLET (utile après suppression)
+# ============================================================
 def save_df(df: pd.DataFrame):
-    # Sauvegarde propre (colonnes + ordre)
     for c in COLS:
         if c not in df.columns:
             df[c] = "" if c == "commentaire" else 0
     df = df[COLS].copy()
     df.to_csv(CSV_FILE, index=False)
 
+
+# ============================================================
+# 10) OUTILS DE CALCUL (score, tendance, filtres)
+# ============================================================
 def clamp(x, a, b):
     return max(a, min(b, x))
 
@@ -161,9 +182,9 @@ def window(df, start, end):
     return df[(df["date"] >= start) & (df["date"] <= end)].copy()
 
 
-# =========================
-# SIDEBAR
-# =========================
+# ============================================================
+# 11) SIDEBAR : PARAMÈTRES + SAISIE
+# ============================================================
 st.sidebar.title("Paramétrage")
 theme = st.sidebar.selectbox("Thème", ["Clair", "Sombre"], index=0)
 dark = theme == "Sombre"
@@ -175,6 +196,7 @@ veil = st.sidebar.slider("Voile", 0.06, 0.90, 0.14 if not dark else 0.60, 0.01)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Saisie d’une session")
+
 with st.sidebar.form("add", clear_on_submit=True):
     d = st.date_input("Date", value=date.today())
     act = st.selectbox("Activité", ["Marche", "Course", "Yoga / Pilates", "Musculation", "Vélo", "Natation", "Autre"])
@@ -202,9 +224,9 @@ if ok:
         st.rerun()
 
 
-# =========================
-# STYLE
-# =========================
+# ============================================================
+# 12) STYLE (CSS)
+# ============================================================
 bg = pick_asset("background.png", "background2.png")
 
 palette = """
@@ -263,7 +285,7 @@ section[data-testid="stSidebar"]{{
   backdrop-filter: blur(10px);
 }}
 
-/* ✅ MASQUES COLORÉS (tint) */
+/* MASQUES COLORÉS */
 .mask{{
   background: linear-gradient(135deg, var(--maskTint1), var(--maskTint2)), var(--maskA);
   border: 1px solid var(--line);
@@ -284,7 +306,7 @@ section[data-testid="stSidebar"]{{
 .mask-mini b{{font-size:13px;color:var(--ink);}}
 .mask-mini .sub{{margin-top:2px;font-size:12px;color:var(--muted);font-weight:750;}}
 
-/* Boutons (st.button) */
+/* Boutons */
 div[data-testid="stButton"] > button{{
   border: none !important;
   border-radius: 999px !important;
@@ -301,7 +323,7 @@ div[data-testid="stButton"] > button:hover{{
   box-shadow: 0 16px 34px rgba(0,0,0,.20) !important;
 }}
 
-/* Boutons Télécharger (st.download_button) */
+/* Download buttons */
 div[data-testid="stDownloadButton"] > button{{
   border: none !important;
   border-radius: 999px !important;
@@ -322,7 +344,7 @@ div[data-testid="stDownloadButton"] > button:disabled{{
   filter: grayscale(.15) !important;
 }}
 
-/* En-tête SANS masque */
+/* Header sans masque */
 .logoRow{{display:flex;align-items:flex-start;gap:18px;margin-bottom:16px;}}
 .logoIcon{{
   width:96px;height:96px;border-radius:22px;
@@ -423,9 +445,9 @@ div[data-testid="stDownloadButton"] > button:disabled{{
 """)
 
 
-# =========================
-# INLINE SVG ICONS
-# =========================
+# ============================================================
+# 13) SVG ICONS
+# ============================================================
 def svg_icon(name: str) -> str:
     icons = {
         "calendar": """<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 3v3"/><path d="M16 3v3"/><path d="M3 9h18"/></svg>""",
@@ -447,9 +469,9 @@ def ico(name: str) -> str:
     return f"<div class='ico'>{svg_icon(name)}</div>"
 
 
-# =========================
-# HEADER (SANS MASQUE) + LOGO "WS"
-# =========================
+# ============================================================
+# 14) HEADER (logo WS + titre)
+# ============================================================
 md_html(f"""
 <div class="logoRow">
   <div class="logoIcon"><div class="logoW">WS</div></div>
@@ -471,9 +493,9 @@ md_html(f"""
 """)
 
 
-# =========================
-# DATA + FILTERS
-# =========================
+# ============================================================
+# 15) DONNÉES + FILTRES PAGE
+# ============================================================
 df_all = load_df()
 
 md_html("<div class='mask-mini'><b>Filtres</b><div class='sub'>Période, activités et seuil de bien-être.</div></div>")
@@ -511,9 +533,9 @@ if df_cur.empty:
     st.stop()
 
 
-# =========================
-# ANALYSE (HORS MASQUE, AVANT KPI)
-# =========================
+# ============================================================
+# 16) CALCUL DES KPI + COMPARAISON
+# ============================================================
 total = len(df_cur)
 minutes = int(df_cur["duree_min"].sum())
 h_m = float(df_cur["humeur"].mean())
@@ -533,6 +555,10 @@ d_hm = delta(h_m, prev_hm)
 d_slm = delta(sl_m, prev_slm)
 d_score = delta(score, prev_score)
 
+
+# ============================================================
+# 17) BLOC "ANALYSE" (principe + périodes)
+# ============================================================
 md_html(f"""
 <div class="analyseTitle">
   {svg_icon("info")} Analyse
@@ -555,9 +581,9 @@ md_html(f"""
 """)
 
 
-# =========================
-# KPI
-# =========================
+# ============================================================
+# 18) KPI (cartes)
+# ============================================================
 r1 = st.columns(3, gap="large")
 r1[0].markdown(
     f"""
@@ -635,9 +661,9 @@ r2[2].markdown(
 )
 
 
-# =========================
-# POINTS FORTS / ATTENTION + NOTE
-# =========================
+# ============================================================
+# 19) POINTS FORTS / ATTENTION + NOTE
+# ============================================================
 forts, att = [], []
 
 if d_minutes is not None:
@@ -712,9 +738,9 @@ with cR:
         st.text_area("Note synthèse", value=note_txt, height=260)
 
 
-# =========================
-# TABS
-# =========================
+# ============================================================
+# 20) ONGLETS (Activité / Bien-être & sommeil / Données)
+# ============================================================
 tab1, tab2, tab3 = st.tabs(["Activité", "Bien-être & sommeil", "Données"])
 
 with tab1:
@@ -732,9 +758,9 @@ with tab2:
         st.line_chart(d2.set_index("date")["sommeil_h"], use_container_width=True)
 
 with tab3:
-    # ---- Données : PAS de recommandations ici (comme demandé)
+    # Données : pas de recommandations ici
     df_for_table = df_all.copy()
-    df_for_table["row_id"] = df_for_table.index  # identifiant stable
+    df_for_table["row_id"] = df_for_table.index
     df_for_table = df_for_table.sort_values("date", ascending=False).reset_index(drop=True)
 
     st.dataframe(df_for_table.drop(columns=["row_id"]), use_container_width=True, hide_index=True)
@@ -744,7 +770,6 @@ with tab3:
 
     st.markdown("### Suppression de données")
 
-    # Libellés lisibles (avec row_id caché)
     labels = []
     for _, r in df_for_table.iterrows():
         labels.append(
@@ -785,7 +810,6 @@ with tab3:
             st.success("Toutes les données ont été supprimées ✅")
             st.rerun()
 
-    # Exports (les 2 boutons colorés)
     e1, e2 = st.columns(2, gap="large")
     with e1:
         st.download_button(
@@ -812,9 +836,9 @@ with tab3:
             )
 
 
-# =========================
-# RECOMMANDATIONS (HORS ONGLET DONNÉES)
-# =========================
+# ============================================================
+# 21) RECOMMANDATIONS (hors onglet Données)
+# ============================================================
 reco = []
 if minutes < 120:
     reco.append(("Priorité", "Planifier 2 sessions courtes (20–30 min) cette semaine."))
@@ -839,9 +863,9 @@ md_html(f"""
 """)
 
 
-# =========================
-# FOOTER (hors masque)
-# =========================
+# ============================================================
+# 22) FOOTER
+# ============================================================
 md_html(f"""
 <div class="footer">
   <strong>{APP_NAME}</strong> — pilotage des habitudes & consolidation des indicateurs.
